@@ -1,0 +1,12 @@
+docker run --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=abc123 -d postgres 
+
+docker exec -it postgres createdb -U postgres SAP  #createdb name 
+
+psql -h localhost -U postgres #access postgres
+
+\l #list database name 
+
+\c <database_name>  #access database_name
+
+\dt #list all table in database_name
+

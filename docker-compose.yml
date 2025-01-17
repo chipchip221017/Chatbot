@@ -1,0 +1,53 @@
+version: '1.0'
+
+services:
+  # PostgreSQL service
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres_user
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: chatbot_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # ChromaDB service (vector storage)
+  chromadb:
+    image: chromadb/chromadb:latest
+    environment:
+      DATABASE_URL: postgresql://postgres_user:postgres_password@db:5432/chatbot_db
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+  # Backend service (Python with FastAPI)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      CHROMA_DB_URL: http://chromadb:8000
+      POSTGRES_DB_URL: postgresql://postgres_user:postgres_password@db:5432/chatbot_db
+    depends_on:
+      - postgres
+      - chromadb
+    ports:
+      - "8000:8000"
+
+  # Frontend service (Gradio for UI)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      BACKEND_URL: http://backend:5000
+    ports:
+      - "7860:7860"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
